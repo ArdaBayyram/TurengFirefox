@@ -1,0 +1,65 @@
+{
+  "manifest_version": 3,
+  "name": "Tureng Dictionary",
+  "short_name": "Tureng",
+  "version": "0.1.0",
+  "description": "Look up English-Turkish translations from Tureng without leaving the page.",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "tureng-firefox@arda.local",
+      "strict_min_version": "142.0",
+      "data_collection_permissions": {
+        "required": [
+          "none"
+        ]
+      }
+    }
+  },
+  "icons": {
+    "48": "icons/icon.svg",
+    "96": "icons/icon.svg"
+  },
+  "action": {
+    "default_title": "Tureng Dictionary",
+    "default_popup": "src/popup/popup.html",
+    "default_icon": {
+      "48": "icons/icon.svg",
+      "96": "icons/icon.svg"
+    }
+  },
+  "background": {
+    "scripts": [
+      "src/tureng.js",
+      "src/selection.js",
+      "src/background.js"
+    ]
+  },
+  "options_ui": {
+    "page": "src/options/options.html",
+    "open_in_tab": false
+  },
+  "permissions": [
+    "storage",
+    "contextMenus",
+    "activeTab",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://tureng.com/*",
+    "https://www.tureng.com/*"
+  ],
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Alt+V"
+      },
+      "description": "Open the Tureng popup"
+    },
+    "lookup-selection": {
+      "suggested_key": {
+        "default": "Alt+T"
+      },
+      "description": "Look up the selected text inline"
+    }
+  }
+}

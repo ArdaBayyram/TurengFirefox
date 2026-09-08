@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+
+# Build output
+web-ext-artifacts/
+*.xpi
+*.zip
+
+# Credentials -- never commit AMO API keys
+.env
+.env.*
+*.pem
+web-ext-config.local.*
+
+# web-ext scratch profiles and upload state
+.web-ext-profile/
+.amo-upload-uuid
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*~
+
+# OS
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Logs
+npm-debug.log*
+yarn-error.log*

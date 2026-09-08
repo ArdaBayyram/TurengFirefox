@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Tureng Options</title>
+  <style>
+    body { font: 13px/1.5 -apple-system, "Segoe UI", Roboto, sans-serif; padding: 14px; min-width: 320px; }
+    label { display: block; margin: 12px 0 4px; font-weight: 600; }
+    select, input { width: 100%; padding: 6px; }
+    .hint { color: #6b6b70; font-weight: 400; font-size: 12px; }
+    button { margin-top: 14px; padding: 6px 12px; cursor: pointer; }
+    #saved { color: #2e7d32; margin-left: 8px; }
+  </style>
+</head>
+<body>
+  <label for="openIn">Context menu / Alt+T opens</label>
+  <select id="openIn">
+    <option value="inline">An overlay on the current page</option>
+    <option value="tab">A new tureng.com tab</option>
+  </select>
+
+  <label for="maxResults">Rows shown in the overlay <span class="hint">(1–25)</span></label>
+  <input id="maxResults" type="number" min="1" max="25">
+
+  <button id="clear-cache" type="button">Clear cached lookups</button>
+  <span id="saved"></span>
+
+  <script src="../tureng.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

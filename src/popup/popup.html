@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Tureng Dictionary</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <form id="search-form" autocomplete="off">
+    <div class="field">
+      <input id="term" type="text" placeholder="Search English or Turkish…" spellcheck="false" autofocus>
+      <button id="clear" type="button" title="Clear" hidden>&times;</button>
+    </div>
+    <button id="go" type="submit" title="Search">Ara</button>
+  </form>
+
+  <div id="status" class="status" hidden></div>
+  <div id="results"></div>
+
+  <footer>
+    <span id="direction" class="dir"></span>
+    <a id="open-site" href="https://tureng.com/en/turkish-english/" target="_blank" rel="noopener">Open on tureng.com &rarr;</a>
+  </footer>
+
+  <script src="../tureng.js"></script>
+  <script src="../selection.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
