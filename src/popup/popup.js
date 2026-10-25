@@ -8,6 +8,7 @@ const statusEl = $('#status');
 const resultsEl = $('#results');
 const dirEl = $('#direction');
 const siteLink = $('#open-site');
+const promoEl = $('#promo');
 
 const INITIAL_ROWS = 25;
 const MAX_AUTO_SEARCH = 100;   // longer selections are filled in, not searched
@@ -18,14 +19,19 @@ function setStatus(text, isError) {
   statusEl.classList.toggle('error', !!isError);
 }
 
+/* Lookups go through the background page, which owns the rate limit and cache. */
+async function lookup(term) {
+  const res = await browser.runtime.sendMessage({ type: 'TURENG_LOOKUP', term });
+  if (!res || !res.ok) throw new Error((res && res.error) || 'Lookup failed');
+  return res.data;
+}
+
 function makeCell(term, pos, lang) {
   const wrap = document.createElement('div');
   wrap.className = lang === 'src' ? 'src' : 'tgt';
-
   const span = document.createElement('span');
   span.textContent = term;
   wrap.appendChild(span);
-
   if (pos) {
     const i = document.createElement('span');
     i.className = 'pos';
@@ -66,16 +72,12 @@ function render(data) {
         const r = section.rows[shown];
         const row = document.createElement('div');
         row.className = 'row';
-
         const cat = document.createElement('div');
         cat.className = 'cat';
         cat.textContent = r.category;
         row.appendChild(cat);
-
         row.appendChild(makeCell(srcIsEn ? r.en : r.tr, srcIsEn ? r.enPos : r.trPos, 'src'));
-
         row.appendChild(makeCell(srcIsEn ? r.tr : r.en, srcIsEn ? r.trPos : r.enPos, 'tgt'));
-
         body.appendChild(row);
       }
     };
@@ -105,14 +107,45 @@ async function search(term) {
   clearBtn.hidden = false;
   siteLink.href = Tureng.url(term);
   resultsEl.replaceChildren();
+  dirEl.textContent = '';
   setStatus(`Searching “${term}”…`);
 
   try {
-    render(await Tureng.lookup(term));
+    render(await lookup(term));
     browser.storage.sync.set({ lastTerm: term });
   } catch (e) {
     setStatus(e.message || 'Lookup failed. Check your connection.', true);
   }
+}
+
+/* Tureng Neo promotion slot, configured in src/promo.js. */
+function renderPromo() {
+  const p = window.TurengPromo;
+  if (!p || !p.enabled || !/^https:\/\//.test(p.href || '')) return;
+  if (!p.image && !p.text) return;
+
+  promoEl.href = p.href;
+  promoEl.replaceChildren();
+
+  if (p.image) {
+    const picture = document.createElement('picture');
+    if (p.imageDark) {
+      const dark = document.createElement('source');
+      dark.media = '(prefers-color-scheme: dark)';
+      dark.srcset = browser.runtime.getURL(p.imageDark);
+      picture.appendChild(dark);
+    }
+    const img = document.createElement('img');
+    img.src = browser.runtime.getURL(p.image);
+    img.alt = p.alt || '';
+    picture.appendChild(img);
+    promoEl.appendChild(picture);
+  } else {
+    promoEl.classList.add('promo-text');
+    promoEl.textContent = p.text;
+  }
+
+  promoEl.hidden = false;
 }
 
 form.addEventListener('submit', (e) => {
@@ -128,8 +161,11 @@ clearBtn.addEventListener('click', () => {
   resultsEl.replaceChildren();
   setStatus('');
   dirEl.textContent = '';
+  siteLink.href = Tureng.HOME;
   input.focus();
 });
+
+renderPromo();
 
 /* Prefill from the page selection, else the previous search. */
 (async function init() {
@@ -139,7 +175,6 @@ clearBtn.addEventListener('click', () => {
     input.value = seed;
     clearBtn.hidden = false;
     siteLink.href = Tureng.url(seed);
-
     if (seed.length <= MAX_AUTO_SEARCH) {
       search(seed);
     } else {

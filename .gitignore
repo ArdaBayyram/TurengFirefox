@@ -30,3 +30,6 @@ desktop.ini
 # Logs
 npm-debug.log*
 yarn-error.log*
+
+# Private email exchange with Tureng -- keep out of the public repo
+correspondence/

@@ -8,7 +8,8 @@ English ⇄ Turkish lookups from [tureng.com](https://tureng.com) without leavin
 - **Selection auto-fill** — whatever is selected on the page is filled into the search box the moment the popup opens, and searched right away. Works for normal page text, text inside `<input>`/`<textarea>`, and text inside iframes.
 - **Inline overlay** (`Alt+T`, or right-click a selection) — results appear next to the selected text, in a shadow root so the host page's CSS can't break them.
 - **Auto direction** — type English or Turkish; Tureng detects it and the UI labels the direction.
-- **Cached** — up to 200 recent lookups in `storage.local`, so repeats are instant.
+- **Source attribution** — every result view names Tureng as the source and links to tureng.com.
+- **Light on Tureng's servers** — user-initiated lookups only, at most one request per second, cached in memory only (max 100 lookups, 24 hours, gone when Firefox closes).
 - **No telemetry** — declares `data_collection_permissions: ["none"]`.
 
 ## Develop
@@ -57,20 +58,35 @@ It now survives restarts like any normal add-on.
 - Unlisted add-ons do not auto-update unless you add an `update_url`. To upgrade, sign a new version and install the new `.xpi` over the old one.
 - Source-code submission is only demanded for minified or obfuscated add-ons. This one is plain readable JS, so it passes automated review as-is.
 
-## Publishing publicly — blocked pending permission
+## Publishing publicly
 
-Tureng's [Terms of Use](https://tureng.com/en/termsofuse) prohibit automated
-scraping ("the user may not use automated scripts or programs to screen scrape or
-otherwise extract data from pages on Tureng website") and reserve the trademark
-("'Tureng' is a trademark of Tureng Ltd and may not be used without Tureng's
-written prior authorization").
+Tureng has granted permission to publish under the "Tureng" name. The add-on
+keeps these commitments, and any change must preserve them:
 
-Both apply to a public listing. A permission request to `tureng@tureng.com` is
-drafted in [docs/permission-request.md](docs/permission-request.md) — send that
-first. Private unlisted use above is a separate matter and is not affected.
+- **Attribution.** Wherever results appear, they are marked as coming from Tureng
+  with a clickable link to tureng.com (popup footer, overlay footer).
+- **Independent.** The add-on and store descriptions state that this is an
+  independent project, not an official Tureng add-on.
+- **Tureng Neo slot.** A small promotion area in the popup, with artwork and link
+  supplied by Tureng, configured in `src/promo.js`.
+- **Polite traffic only.** Requests happen only for user-initiated lookups, at
+  most one per second, with concurrent duplicates merged into one. No crawling, no
+  bulk fetching, and no stored copy of Tureng content: the cache lives in
+  `storage.session` (memory only), holds at most 100 lookups for 24 hours, and is
+  gone when Firefox closes.
+- **Free, no third-party ads.** Any commercial model needs Tureng's approval first.
+- **Review before release.** Tureng sees the final build, store listing and
+  screenshots before anything is published.
 
-If they decline, the options are to keep it private, or to rebuild the lookup
-against a permissively licensed source such as Wiktionary.
+### Remaining steps
+
+1. Add the Tureng Neo artwork and link to `src/promo.js`, then bump `version`.
+2. `npm run build`, capture screenshots, and send the build,
+   [docs/amo-listing.md](docs/amo-listing.md) and the screenshots to Tureng.
+3. After their approval, submit through the
+   [Developer Hub](https://addons.mozilla.org/developers/) as a listed add-on.
+   `web-ext sign` cannot upload screenshots, so the web form is the simpler route
+   for the first public version.
 
 ### Without an AMO account
 
@@ -81,12 +97,14 @@ The only alternative is a Firefox build that permits unsigned add-ons — **Deve
 | Path | Role |
 | --- | --- |
 | `manifest.json` | MV3, `background.scripts` (Firefox has no extension service worker) |
-| `src/tureng.js` | URL building, HTML parsing, LRU cache — shared by popup and background |
+| `src/tureng.js` | URL building, HTML parsing, rate limit, memory-only cache |
 | `src/selection.js` | Reads the page selection across frames, inputs and textareas |
-| `src/background.js` | Context menu, keyboard commands, injection, message routing |
+| `src/background.js` | Context menu, keyboard commands, injection; runs every lookup |
 | `src/popup/` | Toolbar popup UI |
 | `src/content/inline.js` | On-demand shadow-DOM overlay |
 | `src/options/` | Settings (overlay vs. new tab, row count, clear cache) |
+| `src/promo.js` | Tureng Neo promotion slot (artwork and link supplied by Tureng) |
+| `docs/amo-listing.md` | Store listing draft, Turkish and English |
 
 ## How the scraping works
 
@@ -100,7 +118,7 @@ Notes on their markup, verified against the live site:
 - A miss renders `<h1>Term not found</h1>` with no results table.
 - Rows tagged `.mobile-category-row` are mobile-only duplicates and are skipped.
 
-`robots.txt` disallows `/user/`, `/history/` and any query-string URL, but not the `/en/turkish-english/<term>` paths this add-on uses. The site 403s non-browser user agents; a real extension request is unaffected. Lookups are user-initiated and cached, so traffic stays modest.
+`robots.txt` disallows `/user/`, `/history/` and any query-string URL, but not the `/en/turkish-english/<term>` paths this add-on uses. The site 403s non-browser user agents; a real extension request is unaffected. Lookups are user-initiated and rate-limited — see *Publishing publicly*.
 
 Since this depends on Tureng's HTML, a redesign on their side can break parsing — `parse()` in `src/tureng.js` is the single place to fix.
 

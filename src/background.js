@@ -17,6 +17,9 @@ async function settings() {
 }
 
 browser.runtime.onInstalled.addListener(() => {
+  // 0.1.x kept looked-up results on disk; the cache is memory-only now.
+  Tureng.clearCache().catch(() => {});
+
   browser.contextMenus.removeAll().then(() => {
     browser.contextMenus.create({
       id: MENU_ID,
@@ -96,10 +99,14 @@ browser.commands.onCommand.addListener(async (command) => {
   if (term) lookupInPage(tab.id, term);
 });
 
-/* The overlay asks for follow-up lookups when a term inside it is clicked. */
-browser.runtime.onMessage.addListener((msg, sender) => {
-  if (!msg || msg.type !== 'TURENG_REQUEST') return;
-  const tabId = sender.tab && sender.tab.id;
-  if (tabId == null) return;
-  lookupInPage(tabId, String(msg.term || '').trim());
+/*
+ * Every lookup runs in this page -- the popup asks via TURENG_LOOKUP and the
+ * overlay is fed by lookupInPage -- so one rate limit and cache cover both.
+ */
+browser.runtime.onMessage.addListener((msg) => {
+  if (!msg || msg.type !== 'TURENG_LOOKUP') return;
+  return Tureng.lookup(msg.term).then(
+    (data) => ({ ok: true, data }),
+    (e) => ({ ok: false, error: (e && e.message) || 'Lookup failed' })
+  );
 });

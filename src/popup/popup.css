@@ -24,6 +24,8 @@
 
 * { box-sizing: border-box; }
 
+[hidden] { display: none !important; }
+
 body {
   width: 420px;
   max-height: 560px;
@@ -121,6 +123,35 @@ body {
 }
 .more:hover { background: var(--hover); }
 
+.meta {
+  flex-shrink: 0;
+  padding: 5px 10px;
+  border-bottom: 1px solid var(--line);
+  font-size: 11px;
+  color: var(--muted);
+}
+.meta:empty { display: none; }
+
+/* Tureng Neo promotion slot (src/promo.js) */
+.promo {
+  display: block;
+  flex-shrink: 0;
+  margin: 8px 10px;
+  border-radius: 8px;
+  overflow: hidden;
+  line-height: 0;
+}
+.promo img { display: block; width: 100%; height: auto; }
+.promo.promo-text {
+  padding: 8px 10px;
+  background: var(--chip);
+  color: var(--fg);
+  font-size: 12px;
+  line-height: 1.4;
+  text-decoration: none;
+}
+.promo.promo-text:hover { background: var(--hover); }
+
 footer {
   display: flex;
   justify-content: space-between;
@@ -133,3 +164,4 @@ footer {
 }
 footer a { color: var(--accent); text-decoration: none; }
 footer a:hover { text-decoration: underline; }
+footer strong { color: var(--fg); font-weight: 600; }

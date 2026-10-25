@@ -2,8 +2,8 @@
   "manifest_version": 3,
   "name": "Tureng Dictionary",
   "short_name": "Tureng",
-  "version": "0.1.0",
-  "description": "Look up English-Turkish translations from Tureng without leaving the page.",
+  "version": "0.2.0",
+  "description": "Look up English-Turkish translations from Tureng without leaving the page. Independent project; not an official Tureng add-on.",
   "browser_specific_settings": {
     "gecko": {
       "id": "tureng-firefox@arda.local",

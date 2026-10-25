@@ -35,6 +35,8 @@
       .head { border-color: #3a3a41 !important; }
       .row { border-color: #33333a !important; }
       .row:hover { background: #2c2c33 !important; }
+      .foot { border-color: #3a3a41 !important; color: #9a9aa2 !important; }
+      .foot b { color: #ececf1 !important; }
     }
     .head {
       display: flex; align-items: center; gap: 8px;
@@ -45,7 +47,7 @@
       font-weight: 600;
     }
     .head .term { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .head button, .head a {
+    .head button {
       border: 0; background: none; cursor: pointer;
       color: #a4161a; font-size: 12px; text-decoration: none; padding: 0 2px;
     }
@@ -59,8 +61,17 @@
     .pos { color: #8a8a90; font-style: italic; font-size: 11px; margin-left: 3px; }
     .msg { padding: 12px 10px; color: #75757b; }
     .msg.err { color: #a4161a; }
-    .foot { padding: 6px 10px; font-size: 11px; }
-    .foot a { color: #a4161a; }
+    .foot {
+      display: flex; justify-content: space-between; align-items: center; gap: 10px;
+      padding: 6px 10px;
+      border-top: 1px solid #eee;
+      position: sticky; bottom: 0;
+      background: inherit;
+      font-size: 11px; color: #75757b;
+    }
+    .foot b { color: #1c1c1e; font-weight: 600; }
+    .foot a { color: #a4161a; text-decoration: none; white-space: nowrap; }
+    .foot a:hover { text-decoration: underline; }
   `;
 
   function ensure() {
@@ -97,7 +108,7 @@
     p.style.top = y + 'px';
   }
 
-  function header(term, href) {
+  function header(term) {
     const head = document.createElement('div');
     head.className = 'head';
 
@@ -105,13 +116,6 @@
     t.className = 'term';
     t.textContent = term;
     head.appendChild(t);
-
-    if (href) {
-      const a = document.createElement('a');
-      a.href = href; a.target = '_blank'; a.rel = 'noopener';
-      a.textContent = 'Tureng ↗';
-      head.appendChild(a);
-    }
 
     const close = document.createElement('button');
     close.textContent = '✕';
@@ -122,12 +126,34 @@
     return head;
   }
 
+  // Tureng's condition for publishing: wherever results appear, name Tureng as
+  // the source and link to tureng.com. Sticky, so it stays visible while scrolling.
+  function attribution(href, more) {
+    const foot = document.createElement('div');
+    foot.className = 'foot';
+
+    const source = document.createElement('span');
+    const name = document.createElement('b');
+    name.textContent = 'Tureng';
+    source.append('Results from ', name);
+    foot.appendChild(source);
+
+    const link = document.createElement('a');
+    link.href = href || 'https://tureng.com/';
+    link.target = '_blank';
+    link.rel = 'noopener';
+    link.textContent = more > 0 ? `${more} more on tureng.com ↗` : 'tureng.com ↗';
+    foot.appendChild(link);
+
+    return foot;
+  }
+
   function show() { panel().style.display = 'block'; place(); }
   function hide() { if (root) panel().style.display = 'none'; }
 
   function renderLoading(term) {
     const p = panel();
-    p.replaceChildren(header(term, null));
+    p.replaceChildren(header(term));
     const m = document.createElement('div');
     m.className = 'msg';
     m.textContent = 'Searching…';
@@ -137,23 +163,25 @@
 
   function renderError(term, message, href) {
     const p = panel();
-    p.replaceChildren(header(term, href));
+    p.replaceChildren(header(term));
     const m = document.createElement('div');
     m.className = 'msg err';
     m.textContent = message;
     p.appendChild(m);
+    p.appendChild(attribution(href, 0));
     show();
   }
 
   function renderResult(term, data, maxResults, href) {
     const p = panel();
-    p.replaceChildren(header(term, href));
+    p.replaceChildren(header(term));
 
     if (data.notFound || !data.sections.length) {
       const m = document.createElement('div');
       m.className = 'msg';
       m.textContent = 'No results found.';
       p.appendChild(m);
+      p.appendChild(attribution(href, 0));
       show();
       return;
     }
@@ -181,15 +209,7 @@
     }
 
     const total = data.sections.reduce((n, sec) => n + sec.rows.length, 0);
-    if (total > rows.length) {
-      const foot = document.createElement('div');
-      foot.className = 'foot';
-      const a = document.createElement('a');
-      a.href = href; a.target = '_blank'; a.rel = 'noopener';
-      a.textContent = `${total - rows.length} more on tureng.com ↗`;
-      foot.appendChild(a);
-      p.appendChild(foot);
-    }
+    p.appendChild(attribution(href, total - rows.length));
 
     show();
   }

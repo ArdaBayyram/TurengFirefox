@@ -1,6 +1,7 @@
 /*
- * Shared Tureng client: URL building, HTML parsing, caching.
- * Loaded by the background event page and by the popup.
+ * Shared Tureng client: URL building, HTML parsing, rate limiting, caching.
+ * Every lookup() runs in the background event page; the popup and options
+ * pages load this file only for url() and clearCache().
  *
  * Notes on tureng.com's markup (verified against the live site):
  *  - Results live in `table.searchResultsTable`. There can be two of them:
@@ -22,8 +23,18 @@ var Tureng = (function () {
   'use strict';
 
   const BASE = 'https://tureng.com/en/turkish-english/';
-  const CACHE_KEY = 'cache:v1';
-  const CACHE_MAX = 200;
+  const HOME = 'https://tureng.com/';
+
+  /*
+   * Usage limits agreed with Tureng for publishing: requests only for
+   * user-initiated lookups, at a reasonable rate, and no stored copy of their
+   * content. storage.session lives in memory and is never written to disk.
+   */
+  const MIN_INTERVAL_MS = 1000;            // at most one request per second
+  const CACHE_KEY = 'cache:v2';
+  const CACHE_MAX = 100;
+  const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+  const LEGACY_CACHE_KEY = 'cache:v1';     // 0.1.x kept results on disk in storage.local
 
   function url(term) {
     return BASE + encodeURIComponent(String(term).trim());
@@ -104,7 +115,7 @@ var Tureng = (function () {
 
   async function readCache() {
     try {
-      const got = await browser.storage.local.get(CACHE_KEY);
+      const got = await browser.storage.session.get(CACHE_KEY);
       return got[CACHE_KEY] || {};
     } catch (e) {
       return {};
@@ -112,17 +123,64 @@ var Tureng = (function () {
   }
 
   async function writeCache(cache) {
-    // Simple LRU trim by insertion order.
+    const now = Date.now();
+    for (const k of Object.keys(cache)) {
+      if (!cache[k] || now - cache[k].at > CACHE_TTL_MS) delete cache[k];
+    }
+    // LRU trim by insertion order.
     const keys = Object.keys(cache);
     if (keys.length > CACHE_MAX) {
       for (const k of keys.slice(0, keys.length - CACHE_MAX)) delete cache[k];
     }
     try {
-      await browser.storage.local.set({ [CACHE_KEY]: cache });
+      await browser.storage.session.set({ [CACHE_KEY]: cache });
     } catch (e) {
       /* quota -- ignore, cache is best effort */
     }
   }
+
+  // Network requests run one at a time, at least MIN_INTERVAL_MS apart.
+  let lastRequestAt = 0;
+  let queue = Promise.resolve();
+
+  function throttle(task) {
+    const run = queue.then(async () => {
+      const wait = lastRequestAt + MIN_INTERVAL_MS - Date.now();
+      if (wait > 0) await new Promise((done) => setTimeout(done, wait));
+      lastRequestAt = Date.now();
+      return task();
+    });
+    queue = run.catch(() => {});
+    return run;
+  }
+
+  async function load(term, key, noCache) {
+    if (!noCache) {
+      const hit = (await readCache())[key];
+      if (hit && Date.now() - hit.at <= CACHE_TTL_MS) return hit.data;
+    }
+
+    // The cache write happens inside the throttled task, so writes never overlap.
+    return throttle(async () => {
+      const res = await fetch(url(term), {
+        credentials: 'omit',
+        headers: { 'Accept': 'text/html' }
+      });
+      if (!res.ok) throw new Error('Tureng returned HTTP ' + res.status);
+
+      const parsed = parse(await res.text(), term);
+
+      const cache = await readCache();
+      delete cache[key];          // re-insert so it moves to the end (most recent)
+      cache[key] = { at: Date.now(), data: parsed };
+      await writeCache(cache);
+
+      return parsed;
+    });
+  }
+
+  // Concurrent lookups of the same term share a single request.
+  const inflight = new Map();
 
   async function lookup(rawTerm, opts) {
     const options = opts || {};
@@ -131,32 +189,24 @@ var Tureng = (function () {
 
     const key = term.toLocaleLowerCase('tr');
 
-    if (!options.noCache) {
-      const cache = await readCache();
-      if (cache[key]) return cache[key];
+    // Registered before the first await, so a concurrent caller always finds it.
+    if (!inflight.has(key)) {
+      const pending = load(term, key, options.noCache);
+      inflight.set(key, pending);
+      const cleanup = () => inflight.delete(key);
+      pending.then(cleanup, cleanup);
     }
-
-    const res = await fetch(url(term), {
-      credentials: 'omit',
-      headers: { 'Accept': 'text/html' }
-    });
-    if (!res.ok) throw new Error('Tureng returned HTTP ' + res.status);
-
-    const parsed = parse(await res.text(), term);
-
-    const cache = await readCache();
-    delete cache[key];          // re-insert so it moves to the end (most recent)
-    cache[key] = parsed;
-    await writeCache(cache);
-
-    return parsed;
+    return inflight.get(key);
   }
 
   async function clearCache() {
-    await browser.storage.local.remove(CACHE_KEY);
+    await Promise.all([
+      browser.storage.session.remove(CACHE_KEY),
+      browser.storage.local.remove(LEGACY_CACHE_KEY)
+    ]);
   }
 
-  return { url, parse, lookup, clearCache, BASE };
+  return { url, parse, lookup, clearCache, BASE, HOME };
 })();
 
 if (typeof module !== 'undefined') module.exports = Tureng;
