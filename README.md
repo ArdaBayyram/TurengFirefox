@@ -2,11 +2,13 @@
 
 English ⇄ Turkish lookups from [tureng.com](https://tureng.com) without leaving the page.
 
+Runs on Firefox for **Windows, macOS and Linux** — one signed `.xpi` installs on all three, and nothing in the add-on is platform-specific. Requires Firefox 142 or newer.
+
 ## Features
 
-- **Toolbar popup** (`Alt+V`) — search box with grouped results, categories and part of speech.
+- **Toolbar popup** (`Alt+V`, `Control+Shift+V` on macOS) — search box with grouped results, categories and part of speech.
 - **Selection auto-fill** — whatever is selected on the page is filled into the search box the moment the popup opens, and searched right away. Works for normal page text, text inside `<input>`/`<textarea>`, and text inside iframes.
-- **Inline overlay** (`Alt+T`, or right-click a selection) — results appear next to the selected text, in a shadow root so the host page's CSS can't break them.
+- **Inline overlay** (`Alt+T`, `Control+Shift+T` on macOS, or right-click a selection) — results appear next to the selected text, in a shadow root so the host page's CSS can't break them.
 - **Auto direction** — type English or Turkish; Tureng detects it and the UI labels the direction.
 - **Source attribution** — every result view names Tureng as the source and links to tureng.com.
 - **Light on Tureng's servers** — user-initiated lookups only, at most one request per second, cached in memory only (max 100 lookups, 24 hours, gone when Firefox closes).
@@ -37,7 +39,17 @@ Signing it **unlisted** keeps it private: it is never published to the public ad
    **[Developer Hub → Manage API Keys](https://addons.mozilla.org/en-US/developers/addon/api/key/)**.
    You get a JWT issuer (`user:12345678:123`) and a secret. The secret is shown **once**.
 
-2. Sign it (PowerShell):
+2. Sign it.
+
+   macOS / Linux:
+
+   ```bash
+   export WEB_EXT_API_KEY="user:12345678:123"
+   export WEB_EXT_API_SECRET="your-secret"
+   npm run sign
+   ```
+
+   Windows (PowerShell):
 
    ```powershell
    $env:WEB_EXT_API_KEY = "user:12345678:123"
@@ -90,7 +102,7 @@ keeps these commitments, and any change must preserve them:
 
 ### Without an AMO account
 
-The only alternative is a Firefox build that permits unsigned add-ons — **Developer Edition**, **Nightly** or **ESR** — where you set `xpinstall.signatures.required` to `false` in `about:config` and install the unsigned `.zip`. This does not work on your current release build.
+The only alternative is a Firefox build that permits unsigned add-ons — **Developer Edition**, **Nightly** or **ESR** — where you set `xpinstall.signatures.required` to `false` in `about:config` and install the unsigned `.zip`. Release and Beta builds ignore that preference.
 
 ## Layout
 

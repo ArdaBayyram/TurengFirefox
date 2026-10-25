@@ -51,13 +51,15 @@
   "commands": {
     "_execute_action": {
       "suggested_key": {
-        "default": "Alt+V"
+        "default": "Alt+V",
+        "mac": "MacCtrl+Shift+V"
       },
       "description": "Open the Tureng popup"
     },
     "lookup-selection": {
       "suggested_key": {
-        "default": "Alt+T"
+        "default": "Alt+T",
+        "mac": "MacCtrl+Shift+T"
       },
       "description": "Look up the selected text inline"
     }
