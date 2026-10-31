@@ -9,6 +9,7 @@ export default {
     '.gitignore',
     'README.md',
     'docs',
+    'scripts',
     'correspondence',
     '*.xpi',
     '.env'

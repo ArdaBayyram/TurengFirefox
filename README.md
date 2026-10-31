@@ -19,6 +19,7 @@ Runs on Firefox for **Windows, macOS and Linux** — one signed `.xpi` installs 
 ```bash
 npm install
 npm start     # scratch profile, live-reloads on file changes
+              # optional: git config turengfirefox.startBranch <branch> pins which branch it runs
 npm run lint  # currently 0 errors, 0 notices, 0 warnings
 npm run build # -> web-ext-artifacts/*.zip
 ```

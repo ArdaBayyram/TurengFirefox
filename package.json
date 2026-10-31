@@ -1,11 +1,11 @@
 {
   "name": "tureng-firefox",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Firefox add-on for the Tureng English-Turkish dictionary",
   "private": true,
   "scripts": {
     "lint": "web-ext lint",
-    "start": "web-ext run",
+    "start": "node scripts/start.js",
     "build": "web-ext build --overwrite-dest",
     "sign": "web-ext sign --channel=unlisted"
   },

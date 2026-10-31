@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Tureng Dictionary",
   "short_name": "Tureng",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Look up English-Turkish translations from Tureng without leaving the page. Independent project; not an official Tureng add-on.",
   "browser_specific_settings": {
     "gecko": {
@@ -16,15 +16,18 @@
     }
   },
   "icons": {
-    "48": "icons/icon.svg",
-    "96": "icons/icon.svg"
+    "16": "icons/icon-16.svg",
+    "32": "icons/icon-32.svg",
+    "48": "icons/icon-32.svg",
+    "96": "icons/icon-32.svg",
+    "128": "icons/icon-32.svg"
   },
   "action": {
     "default_title": "Tureng Dictionary",
     "default_popup": "src/popup/popup.html",
     "default_icon": {
-      "48": "icons/icon.svg",
-      "96": "icons/icon.svg"
+      "16": "icons/icon-16.svg",
+      "32": "icons/icon-32.svg"
     }
   },
   "background": {
