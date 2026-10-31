@@ -92,7 +92,7 @@ keeps these commitments, and any change must preserve them:
 
 ### Remaining steps
 
-1. Add the Tureng Neo artwork and link to `src/promo.js`, then bump `version`.
+1. ~~Add the Tureng Neo artwork and links~~ — done in 0.3.0 (`promo/tureng-neo.svg`, two store links).
 2. `npm run build`, capture screenshots, and send the build,
    [docs/amo-listing.md](docs/amo-listing.md) and the screenshots to Tureng.
 3. After their approval, submit through the
@@ -115,7 +115,8 @@ The only alternative is a Firefox build that permits unsigned add-ons — **Deve
 | `src/popup/` | Toolbar popup UI |
 | `src/content/inline.js` | On-demand shadow-DOM overlay |
 | `src/options/` | Settings (overlay vs. new tab, row count, clear cache) |
-| `src/promo.js` | Tureng Neo promotion slot (artwork and link supplied by Tureng) |
+| `src/promo.js` | Tureng Neo promotion slot: artwork path and the clickable regions for each store link |
+| `promo/` | Banner artwork supplied by Tureng (bundled, never fetched remotely) |
 | `docs/amo-listing.md` | Store listing draft, Turkish and English |
 
 ## How the scraping works

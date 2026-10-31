@@ -121,10 +121,17 @@ async function search(term) {
 /* Tureng Neo promotion slot, configured in src/promo.js. */
 function renderPromo() {
   const p = window.TurengPromo;
-  if (!p || !p.enabled || !/^https:\/\//.test(p.href || '')) return;
-  if (!p.image && !p.text) return;
+  if (!p || !p.enabled || (!p.image && !p.text)) return;
 
-  promoEl.href = p.href;
+  // Several destinations on one image become invisible links laid over each
+  // region; a single href makes the whole banner one link.
+  const isHttps = (u) => /^https:\/\//.test(u || '');
+  let areas = (p.links || []).filter((l) => isHttps(l.href) && Array.isArray(l.area));
+  if (!areas.length && isHttps(p.href)) {
+    areas = [{ href: p.href, label: p.alt || '', area: [0, 0, 100, 100] }];
+  }
+  if (!areas.length) return;
+
   promoEl.replaceChildren();
 
   if (p.image) {
@@ -143,6 +150,22 @@ function renderPromo() {
   } else {
     promoEl.classList.add('promo-text');
     promoEl.textContent = p.text;
+  }
+
+  for (const l of areas) {
+    const a = document.createElement('a');
+    a.className = 'promo-hit';
+    a.href = l.href;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    a.title = l.label || '';
+    a.setAttribute('aria-label', l.label || p.alt || '');
+    const [left, top, width, height] = l.area;
+    a.style.left = left + '%';
+    a.style.top = top + '%';
+    a.style.width = width + '%';
+    a.style.height = height + '%';
+    promoEl.appendChild(a);
   }
 
   promoEl.hidden = false;

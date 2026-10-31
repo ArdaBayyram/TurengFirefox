@@ -1,6 +1,6 @@
 {
   "name": "tureng-firefox",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Firefox add-on for the Tureng English-Turkish dictionary",
   "private": true,
   "scripts": {
